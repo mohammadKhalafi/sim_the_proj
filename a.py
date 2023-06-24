@@ -1,9 +1,10 @@
 import numpy as np
 from numpy import random
 
-T = 20
+T = 40
 x = 5
-y = 8
+y = 10
+num_pros = 3
 
 # create betweens
 sum_of_betweens = 0
@@ -37,3 +38,20 @@ for between in betweens:
 service_times = random.exponential(scale=y, size=len(arrival_times))
 
 
+# create start and end of the service times
+n = len(service_times)
+
+end_service_times = []
+start_service_times = []
+
+for i in range(n):
+    past_ends = [0 for _ in range(num_pros-i)] + end_service_times[max(0, i-num_pros) : i]
+    assert len(past_ends) == num_pros
+    start_service_times.append(max(arrival_times[i], min(past_ends)))
+    end_service_times.append(start_service_times[i] + service_times[i])
+
+
+print(arrival_times)
+print(start_service_times)
+print(service_times)
+print(end_service_times)
