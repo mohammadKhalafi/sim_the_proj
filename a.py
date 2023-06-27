@@ -101,6 +101,10 @@ end_service_times = [-1 for _ in range(n)]
 service_started_tasks_in_order = []
 pending_tasks_in_order = list(range(n))
 
+task_states = ['pending' for _ in range(n)]
+
+counter_for_check_canceled_tasks = 0
+
 while len(pending_tasks_in_order) != 0:
     lst_len = len(service_started_tasks_in_order)
     service_ends_to_check = [0 for _ in range(num_pros - lst_len)] +\
@@ -116,11 +120,34 @@ while len(pending_tasks_in_order) != 0:
         else:
             break
     
+    # detect canceled tasks
+    for pending_task in pending_tasks_could_fetch:
+        if pending_task <= counter_for_check_canceled_tasks:
+            continue
+
+        in_queue_tasks_before_pending_task = \
+            sum([task_state == 'pending' for task_state in task_states[0:pending_task]])
+        assert(in_queue_tasks_before_pending_task <= queue_limit)
+
+        if in_queue_tasks_before_pending_task == queue_limit:
+            task_states[pending_task] = 'canceled'
+            pending_tasks_in_order.remove(pending_task)
+    
+    counter_for_check_canceled_tasks = \
+        pending_tasks_could_fetch[len(pending_tasks_could_fetch)-1]
+
+    pending_tasks_could_fetch = list(filter(lambda t : task_states[t] != 'canceled',\
+        pending_tasks_could_fetch))
+
+
     if len(pending_tasks_could_fetch) == 0:
+        if len(pending_tasks_in_order) == 0:
+            break
+
         task_to_fetch = pending_tasks_in_order[0]
         
         start_service_times[task_to_fetch] = arrival_times[task_to_fetch]
-        end_service_times[task_to_fetch] = start_service_times[task_to_fetch] + service_times[task_to_fetch]
+
     else:
         priorities_of_pending_tasks_could_fetch = [task_priorities[i] for i in pending_tasks_could_fetch]
         task_to_fetch_index = priorities_of_pending_tasks_could_fetch.index\
@@ -128,9 +155,12 @@ while len(pending_tasks_in_order) != 0:
         task_to_fetch = pending_tasks_could_fetch[task_to_fetch_index]
 
         start_service_times[task_to_fetch] = time_to_fetch_task
-        end_service_times[task_to_fetch] = start_service_times[task_to_fetch] + service_times[task_to_fetch]
 
-    
+    #common works for task to fetch
+    task_states[task_to_fetch] = 'started'
+    end_service_times[task_to_fetch] = \
+        start_service_times[task_to_fetch] + service_times[task_to_fetch]
+
     service_started_tasks_in_order.append(task_to_fetch)
     pending_tasks_in_order.remove(task_to_fetch)
 
