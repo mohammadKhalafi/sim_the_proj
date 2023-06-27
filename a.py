@@ -54,10 +54,12 @@ def get_priority():
 task_priorities = [get_priority() for _ in range(n)]
 
 # mock
+
 '''
 n = 5
-arrival_times = [0,0,0,1,2]
+arrival_times = [0,0.1,0.2,1,2]
 service_times = [2,2,2,2,2]
+task_priorities = [0,1,0,0,0]
 '''
 
 # create start and end of the service times for fifo
@@ -87,11 +89,12 @@ for i in range(n):
     end_service_times_for_entered_tasks.append(end_service_time)
 
 
+'''
 print('arrival_times', arrival_times)
 print('start_service_times', start_service_times)
 print('service_times', service_times)
 print('end_service_times', end_service_times)
-
+'''
 
 # create start and end of the service times for priority queue
 
@@ -123,6 +126,9 @@ while len(pending_tasks_in_order) != 0:
     # detect canceled tasks
     for pending_task in pending_tasks_could_fetch:
         if pending_task <= counter_for_check_canceled_tasks:
+            continue
+
+        if arrival_times[pending_task] == time_to_fetch_task:
             continue
 
         in_queue_tasks_before_pending_task = \
@@ -164,11 +170,10 @@ while len(pending_tasks_in_order) != 0:
     service_started_tasks_in_order.append(task_to_fetch)
     pending_tasks_in_order.remove(task_to_fetch)
 
-'''
+
 print(arrival_times)
 print(service_times)
 print(task_priorities)
 print(start_service_times)
 print(end_service_times)
-'''
-
+print(task_states)
