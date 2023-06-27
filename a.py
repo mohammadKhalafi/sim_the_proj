@@ -2,9 +2,11 @@ import numpy as np
 from numpy import random
 
 T = 40
-x = 5
-y = 10
+x = 5 #arrival rate
+y = 10 #serivce rate
 num_pros = 1
+
+queue_limit = 2
 
 # create betweens
 sum_of_betweens = 0
@@ -51,22 +53,45 @@ def get_priority():
 
 task_priorities = [get_priority() for _ in range(n)]
 
+# mock
+'''
+n = 5
+arrival_times = [0,0,0,1,2]
+service_times = [2,2,2,2,2]
+'''
+
 # create start and end of the service times for fifo
 end_service_times = []
 start_service_times = []
+end_service_times_for_entered_tasks = []
 
 for i in range(n):
-    past_ends = [0 for _ in range(num_pros-i)] + end_service_times[max(0, i-num_pros) : i]
-    assert len(past_ends) == num_pros
-    start_service_times.append(max(arrival_times[i], min(past_ends)))
-    end_service_times.append(start_service_times[i] + service_times[i])
+    number_of_tasks_in_queue_after_task_arrival = \
+        len(list(filter(lambda k : start_service_times[k] != 'err' and \
+            start_service_times[k] > arrival_times[i], range(0, i))))
+    
+    if number_of_tasks_in_queue_after_task_arrival == queue_limit:
+        start_service_times.append('err')
+        end_service_times.append('err')
+        continue
 
-'''
-print(arrival_times)
-print(start_service_times)
-print(service_times)
-print(end_service_times)
-'''
+    l = len(end_service_times_for_entered_tasks)
+    past_ends = [0 for _ in range(num_pros-l)] + \
+        end_service_times_for_entered_tasks[max(0, l-num_pros) : l]
+    assert len(past_ends) == num_pros
+
+    start_service_times.append(max(arrival_times[i], min(past_ends)))
+
+    end_service_time = start_service_times[i] + service_times[i]
+    end_service_times.append(end_service_time)
+    end_service_times_for_entered_tasks.append(end_service_time)
+
+
+print('arrival_times', arrival_times)
+print('start_service_times', start_service_times)
+print('service_times', service_times)
+print('end_service_times', end_service_times)
+
 
 # create start and end of the service times for priority queue
 
@@ -109,11 +134,11 @@ while len(pending_tasks_in_order) != 0:
     service_started_tasks_in_order.append(task_to_fetch)
     pending_tasks_in_order.remove(task_to_fetch)
 
-
+'''
 print(arrival_times)
 print(service_times)
 print(task_priorities)
 print(start_service_times)
 print(end_service_times)
-
+'''
 
